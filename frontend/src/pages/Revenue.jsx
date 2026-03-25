@@ -2,21 +2,28 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Target, PieChart as PieIcon, TrendingUp } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend, PieChart, Pie, Cell } from 'recharts';
+import DateRangePicker from '../components/DateRangePicker';
 
 const API_URL = 'http://localhost:5000/api';
 
-export default function Revenue({ merchantId }) {
+export default function Revenue({ merchantId, searchQuery }) {
   const [benchmarks, setBenchmarks] = useState(null);
   const [categories, setCategories] = useState([]);
   const [pricingSignal, setPricingSignal] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [dateRange, setDateRange] = useState({ from: null, to: null });
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
         const id = merchantId && merchantId !== 'all' ? merchantId : 1;
-        const res = await axios.get(`${API_URL}/merchant/${id}/dashboard`);
+        let url = `${API_URL}/merchant/${id}/dashboard`;
+        const params = [];
+        if (dateRange.from) params.push(`from=${dateRange.from}`);
+        if (dateRange.to) params.push(`to=${dateRange.to}`);
+        if (params.length > 0) url += '?' + params.join('&');
+        const res = await axios.get(url);
         setBenchmarks(res.data.benchmarks);
         setCategories(res.data.category_insights || []);
         setPricingSignal(res.data.pricing_signal || null);
@@ -27,7 +34,7 @@ export default function Revenue({ merchantId }) {
       }
     };
     fetchData();
-  }, [merchantId]);
+  }, [merchantId, dateRange]);
 
   if (loading) {
     return (
@@ -47,8 +54,21 @@ export default function Revenue({ merchantId }) {
   const COLORS = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#3b82f6'];
   const categoryChartData = categories.filter(c => c.category || c.mcc);
 
+  // Search filtering
+  const filteredCategories = searchQuery
+    ? categoryChartData.filter(c =>
+        ((c.category || c.mcc || '')).toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : categoryChartData;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+      {/* Date Range Picker */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <DateRangePicker dateRange={dateRange} onDateRangeChange={setDateRange} />
+      </div>
+
       {/* AI Pricing Advisor */}
       {pricingSignal && (
         <div className="glass-card">
@@ -116,14 +136,14 @@ export default function Revenue({ merchantId }) {
           <div className="card-header">
             <h3 className="card-title"><PieIcon size={20} color="var(--warning)" /> Category Insights</h3>
           </div>
-          {categoryChartData.length > 0 ? (
+          {filteredCategories.length > 0 ? (
             <>
               <div style={{ height: '260px', width: '100%' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={categoryChartData} cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={5}
+                    <Pie data={filteredCategories} cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={5}
                       dataKey="total_revenue" nameKey="category">
-                      {categoryChartData.map((_, index) => (
+                      {filteredCategories.map((_, index) => (
                         <Cell key={index} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -133,8 +153,8 @@ export default function Revenue({ merchantId }) {
                 </ResponsiveContainer>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {categoryChartData.slice(0, 5).map((c, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                {filteredCategories.slice(0, 5).map((c, i) => (
+                  <div key={i} className="stat-row">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLORS[i % COLORS.length] }}></div>
                       <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{c.category || c.mcc}</span>
@@ -144,7 +164,7 @@ export default function Revenue({ merchantId }) {
                 ))}
               </div>
             </>
-          ) : <p style={{ color: 'var(--text-muted)', textAlign: 'center', paddingTop: '48px' }}>No category data yet for this merchant.</p>}
+          ) : <p style={{ color: 'var(--text-muted)', textAlign: 'center', paddingTop: '48px' }}>{searchQuery ? `No categories matching "${searchQuery}"` : 'No category data yet for this merchant.'}</p>}
         </div>
       </div>
     </div>

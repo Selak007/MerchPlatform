@@ -5,7 +5,7 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianG
 
 const API_URL = 'http://localhost:5000/api';
 
-export default function Customers({ merchantId }) {
+export default function Customers({ merchantId, searchQuery }) {
   const [segments, setSegments] = useState([]);
   const [repeatData, setRepeatData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -48,13 +48,20 @@ export default function Customers({ merchantId }) {
     { day: 'Sun', active: Math.round(totalUsers * 0.28) }
   ];
 
+  // Search filtering for segments
+  const filteredSegments = searchQuery
+    ? segments.filter(seg =>
+        (seg.segment || '').toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : segments;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <div className="grid-cols-3">
         <div className="glass-card">
           <div className="card-header">
             <h3 className="card-title">Total Customers</h3>
-            <div style={{ padding: '8px', background: 'rgba(99,102,241,0.15)', borderRadius: '8px', color: 'var(--primary)' }}>
+            <div className="icon-badge icon-badge--primary">
               <Users size={20} />
             </div>
           </div>
@@ -65,7 +72,7 @@ export default function Customers({ merchantId }) {
         <div className="glass-card">
           <div className="card-header">
             <h3 className="card-title">Repeat Rate (Loyalty)</h3>
-            <div style={{ padding: '8px', background: 'rgba(16,185,129,0.15)', borderRadius: '8px', color: 'var(--success)' }}>
+            <div className="icon-badge icon-badge--success">
               <UserCheck size={20} />
             </div>
           </div>
@@ -78,7 +85,7 @@ export default function Customers({ merchantId }) {
         <div className="glass-card">
           <div className="card-header">
             <h3 className="card-title">First-Time Buyers</h3>
-            <div style={{ padding: '8px', background: 'rgba(239,68,68,0.15)', borderRadius: '8px', color: 'var(--danger)' }}>
+            <div className="icon-badge icon-badge--danger">
               <UserPlus size={20} />
             </div>
           </div>
@@ -91,11 +98,8 @@ export default function Customers({ merchantId }) {
         <div className="glass-card">
           <div className="card-header"><h3 className="card-title">Customer Segments</h3></div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '8px' }}>
-            {segments.map((seg, idx) => (
-              <div key={idx} style={{
-                background: 'rgba(255,255,255,0.03)', border: '1px solid var(--card-border)',
-                borderRadius: '12px', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-              }}>
+            {filteredSegments.length > 0 ? filteredSegments.map((seg, idx) => (
+              <div key={idx} className="list-card">
                 <div>
                   <h4 style={{ fontSize: '15px', color: '#fff', marginBottom: '4px' }}>{seg.segment}</h4>
                   <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{seg.count.toLocaleString()} Users</p>
@@ -109,7 +113,11 @@ export default function Customers({ merchantId }) {
                   {seg.count > 0 ? ((seg.count / (segments.reduce((a,s)=>a+s.count,0) || 1)) * 100).toFixed(0) + '%' : '0%'}
                 </div>
               </div>
-            ))}
+            )) : (
+              <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
+                {searchQuery ? `No segments matching "${searchQuery}"` : 'No segment data available'}
+              </div>
+            )}
           </div>
         </div>
 

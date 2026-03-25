@@ -27,6 +27,7 @@ export default function AIAssistantPanel() {
     return (
       <button 
         onClick={() => setIsOpen(true)}
+        aria-label="Open AI Assistant"
         style={{
           position: 'fixed', bottom: '32px', right: '32px',
           width: '64px', height: '64px', borderRadius: '50%',
@@ -64,13 +65,13 @@ export default function AIAssistantPanel() {
             </p>
           </div>
         </div>
-        <button onClick={() => setIsOpen(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+        <button onClick={() => setIsOpen(false)} aria-label="Close AI Assistant" style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
           <X size={20} />
         </button>
       </div>
 
       {/* Messages Area */}
-      <div style={{ flex: 1, padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div role="log" aria-live="polite" style={{ flex: 1, padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {messages.map((msg, idx) => (
           <div key={idx} className={`chat-message ${msg.role}`}>
             {msg.text}
@@ -87,9 +88,10 @@ export default function AIAssistantPanel() {
             placeholder="Ask about revenue, fraud, etc..." 
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            aria-label="Type a message"
           />
-          <button className="chat-send-btn" onClick={handleSend}>
+          <button className="chat-send-btn" onClick={handleSend} aria-label="Send message">
             <Send size={18} />
           </button>
         </div>
