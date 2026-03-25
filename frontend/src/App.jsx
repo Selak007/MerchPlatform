@@ -7,12 +7,15 @@ import Revenue from './pages/Revenue';
 import Customers from './pages/Customers';
 import Risk from './pages/Risk';
 import Insights from './pages/Insights';
+import Settings from './pages/Settings';
+import Assistant from './pages/Assistant';
 import AIAssistantPanel from './components/AIAssistantPanel';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [merchants, setMerchants] = useState([]);
   const [selectedMerchant, setSelectedMerchant] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     axios.get('http://localhost:5000/api/merchants')
@@ -28,6 +31,7 @@ export default function App() {
       case 'risk': return 'Fraud Risk Monitor';
       case 'insights': return 'AI Smart Recommendations';
       case 'assistant': return 'AI Business Coach';
+      case 'settings': return 'Platform Settings';
       default: return 'Dashboard';
     }
   };
@@ -35,15 +39,19 @@ export default function App() {
   const renderContent = () => {
     switch(activeTab) {
       case 'dashboard':
-        return <Dashboard merchantId={selectedMerchant} />;
+        return <Dashboard merchantId={selectedMerchant} searchQuery={searchQuery} />;
       case 'revenue':
-        return <Revenue merchantId={selectedMerchant} />;
+        return <Revenue merchantId={selectedMerchant} searchQuery={searchQuery} />;
       case 'customers':
-        return <Customers merchantId={selectedMerchant} />;
+        return <Customers merchantId={selectedMerchant} searchQuery={searchQuery} />;
       case 'risk':
-        return <Risk merchantId={selectedMerchant} />;
+        return <Risk merchantId={selectedMerchant} searchQuery={searchQuery} />;
       case 'insights':
-        return <Insights merchantId={selectedMerchant} />;
+        return <Insights merchantId={selectedMerchant} searchQuery={searchQuery} />;
+      case 'settings':
+        return <Settings />;
+      case 'assistant':
+        return <Assistant merchantId={selectedMerchant} searchQuery={searchQuery} />;
       default:
         return (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60%', color: 'var(--text-muted)' }}>
@@ -63,9 +71,12 @@ export default function App() {
           title={getPageTitle()} 
           merchants={merchants} 
           selectedMerchant={selectedMerchant} 
-          setSelectedMerchant={setSelectedMerchant} 
+          setSelectedMerchant={setSelectedMerchant}
+          onSearch={setSearchQuery}
         />
-        {renderContent()}
+        <div key={activeTab} className="page-enter">
+          {renderContent()}
+        </div>
       </main>
 
       <AIAssistantPanel merchantId={selectedMerchant} />

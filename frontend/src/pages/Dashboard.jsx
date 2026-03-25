@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Zap, TrendingUp, BarChart3, ShieldCheck, ArrowUpRight, Activity } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
+import DateRangePicker from '../components/DateRangePicker';
 
 const API_URL = 'http://localhost:5000/api';
 
-export default function Dashboard({ merchantId }) {
+export default function Dashboard({ merchantId, searchQuery }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [dateRange, setDateRange] = useState({ from: null, to: null });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -16,7 +18,12 @@ export default function Dashboard({ merchantId }) {
       setError(null);
       try {
         const id = merchantId && merchantId !== 'all' ? merchantId : 1;
-        const res = await axios.get(`${API_URL}/merchant/${id}/dashboard`);
+        let url = `${API_URL}/merchant/${id}/dashboard`;
+        const params = [];
+        if (dateRange.from) params.push(`from=${dateRange.from}`);
+        if (dateRange.to) params.push(`to=${dateRange.to}`);
+        if (params.length > 0) url += '?' + params.join('&');
+        const res = await axios.get(url);
         setData(res.data);
       } catch (err) {
         console.error('Dashboard fetch error:', err);
@@ -26,17 +33,17 @@ export default function Dashboard({ merchantId }) {
       }
     };
     fetchData();
-  }, [merchantId]);
+  }, [merchantId, dateRange]);
 
   if (loading) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         <div className="grid-cols-3">
           <div className="glass-card skeleton" style={{ height: '260px' }}></div>
-          <div className="glass-card skeleton" style={{ height: '260px', gridColumn: 'span 2' }}></div>
+          <div className="glass-card skeleton span-2" style={{ height: '260px' }}></div>
         </div>
         <div className="grid-cols-3">
-          <div className="glass-card skeleton" style={{ height: '360px', gridColumn: 'span 2' }}></div>
+          <div className="glass-card skeleton span-2" style={{ height: '360px' }}></div>
           <div className="glass-card skeleton" style={{ height: '360px' }}></div>
         </div>
       </div>
@@ -58,7 +65,7 @@ export default function Dashboard({ merchantId }) {
 
   const COLORS = ['#6366f1', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#3b82f6'];
 
-  // Build peak hour chart data (label each hour nicely)
+  // Build peak hour chart data
   const peakData = (peak_hours || []).map(p => ({
     hour: `${p.hour}:00`,
     txns: parseInt(p.transaction_count) || 0,
@@ -71,8 +78,21 @@ export default function Dashboard({ merchantId }) {
     revenue: parseFloat(c.total_revenue) || 0
   }));
 
+  // Search filtering for recommendations
+  const filteredRecommendations = searchQuery
+    ? (recommendations || []).filter(rec =>
+        (rec.text || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (rec.type || '').toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : (recommendations || []);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+      {/* Date Range Picker */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <DateRangePicker dateRange={dateRange} onDateRangeChange={setDateRange} />
+      </div>
 
       {/* Row 1: Health Score + Recommendations */}
       <div className="grid-cols-3">
@@ -108,23 +128,16 @@ export default function Dashboard({ merchantId }) {
         </div>
 
         {/* AI Recommendations */}
-        <div className="glass-card" style={{ gridColumn: 'span 2' }}>
+        <div className="glass-card span-2">
           <div className="card-header">
             <h3 className="card-title"><TrendingUp size={20} color="var(--primary)" /> Smart AI Recommendations</h3>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {(recommendations || []).map((rec, idx) => (
-              <div key={idx} style={{
-                background: 'rgba(255,255,255,0.03)', border: '1px solid var(--card-border)',
-                borderRadius: '12px', padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-              }}>
+            {filteredRecommendations.length > 0 ? filteredRecommendations.map((rec, idx) => (
+              <div key={idx} className="list-card">
                 <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
-                  <div style={{
-                    width: '36px', height: '36px', borderRadius: '8px', flexShrink: 0,
-                    background: rec.priority === 'High' ? 'rgba(16,185,129,0.15)' : 'rgba(99,102,241,0.15)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: rec.priority === 'High' ? 'var(--success)' : 'var(--primary)'
-                  }}>
+                  <div className={`icon-badge ${rec.priority === 'High' ? 'icon-badge--success' : 'icon-badge--primary'}`}
+                    style={{ width: '36px', height: '36px', flexShrink: 0 }}>
                     {rec.priority === 'High' ? <TrendingUp size={18} /> : <BarChart3 size={18} />}
                   </div>
                   <div>
@@ -137,7 +150,11 @@ export default function Dashboard({ merchantId }) {
                   <p style={{ fontSize: '16px', fontWeight: '700', color: 'var(--success)' }}>+${rec.impact || '--'}</p>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
+                {searchQuery ? `No recommendations matching "${searchQuery}"` : 'No recommendations available'}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -145,7 +162,7 @@ export default function Dashboard({ merchantId }) {
       {/* Row 2: Peak Hours + Customer Segments */}
       <div className="grid-cols-3">
         {/* Peak Hours Heatmap */}
-        <div className="glass-card" style={{ gridColumn: 'span 2' }}>
+        <div className="glass-card span-2" aria-label="Peak hours transaction chart">
           <div className="card-header">
             <h3 className="card-title"><Activity size={20} color="var(--info)" /> Peak Hours Heatmap</h3>
             <div>
@@ -194,7 +211,7 @@ export default function Dashboard({ merchantId }) {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
             {(customer_segments || []).map((seg, idx) => (
-              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={idx} className="stat-row">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLORS[idx % COLORS.length] }}></div>
                   <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{seg.segment}</span>
@@ -206,7 +223,7 @@ export default function Dashboard({ merchantId }) {
 
           {/* Repeat Customer Stats */}
           <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--card-border)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div className="stat-row">
               <div>
                 <p className="metric-label" style={{ marginBottom: '2px' }}>Repeat Rate</p>
                 <p style={{ fontWeight: '700', color: parseFloat(repeat_analysis?.repeat_rate || 0) > 30 ? 'var(--success)' : 'var(--danger)' }}>
@@ -225,7 +242,7 @@ export default function Dashboard({ merchantId }) {
       {/* Row 3: Competitor Benchmarks + Category Insights */}
       <div className="grid-cols-2">
         {/* Competitor Benchmarking */}
-        <div className="glass-card">
+        <div className="glass-card" aria-label="Competitor benchmarking chart">
           <div className="card-header">
             <h3 className="card-title"><BarChart3 size={20} color="var(--warning)" /> Competitor Benchmarking</h3>
             {benchmarks && <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>MCC: {benchmarks.mcc}</span>}
@@ -257,7 +274,7 @@ export default function Dashboard({ merchantId }) {
         </div>
 
         {/* Category Insights */}
-        <div className="glass-card">
+        <div className="glass-card" aria-label="Category insights chart">
           <div className="card-header">
             <h3 className="card-title"><ArrowUpRight size={20} color="var(--success)" /> Category / MCC Insights</h3>
           </div>

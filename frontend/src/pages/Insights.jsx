@@ -4,7 +4,7 @@ import { Sparkles, TrendingUp, Tag, BarChart3 } from 'lucide-react';
 
 const API_URL = 'http://localhost:5000/api';
 
-export default function Insights({ merchantId }) {
+export default function Insights({ merchantId, searchQuery }) {
   const [recommendations, setRecommendations] = useState([]);
   const [pricingSignal, setPricingSignal] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -30,6 +30,14 @@ export default function Insights({ merchantId }) {
     return <div className="glass-card skeleton" style={{ height: '400px' }}></div>;
   }
 
+  // Search filtering
+  const filteredRecommendations = searchQuery
+    ? recommendations.filter(rec =>
+        (rec.text || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (rec.type || '').toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : recommendations;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <div className="glass-card">
@@ -40,18 +48,13 @@ export default function Insights({ merchantId }) {
           Powered by real transaction analytics — merchant-specific and dynamic.
         </p>
         <div className="grid-cols-2">
-          {recommendations.map((rec, idx) => (
-            <div key={idx} style={{
-              background: 'rgba(255,255,255,0.03)', border: '1px solid var(--card-border)',
-              borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px'
+          {filteredRecommendations.length > 0 ? filteredRecommendations.map((rec, idx) => (
+            <div key={idx} className="list-card" style={{
+              flexDirection: 'column', gap: '16px', padding: '24px', borderRadius: '16px'
             }}>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                <div style={{
-                  width: '48px', height: '48px', borderRadius: '12px', flexShrink: 0,
-                  background: rec.type === 'Revenue Booster' ? 'rgba(16,185,129,0.15)' : rec.type === 'Pricing Advisor' ? 'rgba(245,158,11,0.15)' : 'rgba(59,130,246,0.15)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: rec.type === 'Revenue Booster' ? 'var(--success)' : rec.type === 'Pricing Advisor' ? 'var(--warning)' : 'var(--info)'
-                }}>
+                <div className={`icon-badge ${rec.type === 'Revenue Booster' ? 'icon-badge--success' : rec.type === 'Pricing Advisor' ? 'icon-badge--warning' : 'icon-badge--info'}`}
+                  style={{ width: '48px', height: '48px', borderRadius: '12px', flexShrink: 0 }}>
                   {rec.type === 'Pricing Advisor' ? <Tag size={24} /> : rec.type === 'Revenue Booster' ? <TrendingUp size={24} /> : <BarChart3 size={24} />}
                 </div>
                 <div>
@@ -59,7 +62,7 @@ export default function Insights({ merchantId }) {
                   <h4 style={{ fontSize: '16px', color: '#fff', marginTop: '4px' }}>{rec.text}</h4>
                 </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
+              <div className="stat-row" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
                 <div>
                   <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Expected Revenue Impact</p>
                   <p style={{ fontSize: '20px', fontWeight: '700', color: 'var(--success)' }}>+${rec.impact || '—'}</p>
@@ -73,7 +76,11 @@ export default function Insights({ merchantId }) {
                 </div>
               </div>
             </div>
-          ))}
+          )) : (
+            <div className="span-2" style={{ textAlign: 'center', padding: '48px', color: 'var(--text-muted)' }}>
+              {searchQuery ? `No recommendations matching "${searchQuery}"` : 'No recommendations available'}
+            </div>
+          )}
         </div>
       </div>
     </div>

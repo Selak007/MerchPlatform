@@ -13,7 +13,7 @@ const RISK_COLORS = {
 
 const FRAUD_COLORS = ['#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e'];
 
-export default function Risk({ merchantId }) {
+export default function Risk({ merchantId, searchQuery }) {
   const [fraudData, setFraudData] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [health, setHealth] = useState(null);
@@ -68,13 +68,27 @@ export default function Risk({ merchantId }) {
     risk: parseFloat(f.avg_risk_score || f.avg_risk || 0).toFixed(0)
   }));
 
+  // Search filtering
+  const filteredChartData = searchQuery
+    ? chartData.filter(row =>
+        row.label.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : chartData;
+
+  const filteredAlerts = searchQuery
+    ? alerts.filter(alert =>
+        (alert.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (alert.message || '').toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : alerts;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
       {/* Risk KPI Cards */}
       <div className="grid-cols-3">
         <div className="glass-card" style={{ border: `1px solid ${riskColor}44` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div className="stat-row" style={{ alignItems: 'flex-start' }}>
             <div>
               <p className="metric-label">Fraud Rate</p>
               <p style={{ fontSize: '40px', fontWeight: '800', color: riskColor, lineHeight: 1.1 }}>{fraudRate}%</p>
@@ -87,14 +101,14 @@ export default function Risk({ merchantId }) {
                 {riskLevel} Risk
               </div>
             </div>
-            <div style={{ padding: '12px', borderRadius: '12px', background: `${riskColor}15` }}>
+            <div className="icon-badge" style={{ padding: '12px', borderRadius: '12px', background: `${riskColor}15` }}>
               <ShieldAlert size={28} color={riskColor} />
             </div>
           </div>
         </div>
 
         <div className="glass-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div className="stat-row" style={{ alignItems: 'flex-start' }}>
             <div>
               <p className="metric-label">Approval Rate</p>
               <p style={{ fontSize: '40px', fontWeight: '800', color: '#10b981', lineHeight: 1.1 }}>{approvalRate}%</p>
@@ -102,20 +116,20 @@ export default function Risk({ merchantId }) {
                 <div style={{ width: `${approvalRate}%`, height: '100%', background: '#10b981', borderRadius: '3px' }}></div>
               </div>
             </div>
-            <div style={{ padding: '12px', borderRadius: '12px', background: 'rgba(16,185,129,0.15)' }}>
+            <div className="icon-badge" style={{ padding: '12px', borderRadius: '12px', background: 'rgba(16,185,129,0.15)' }}>
               <ShieldCheck size={28} color="#10b981" />
             </div>
           </div>
         </div>
 
         <div className="glass-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div className="stat-row" style={{ alignItems: 'flex-start' }}>
             <div>
               <p className="metric-label">Total Fraud Cases</p>
               <p style={{ fontSize: '40px', fontWeight: '800', color: '#fff', lineHeight: 1.1 }}>{totalFraudCases}</p>
               <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '8px' }}>across {validFraud.length} fraud types</p>
             </div>
-            <div style={{ padding: '12px', borderRadius: '12px', background: 'rgba(99,102,241,0.15)' }}>
+            <div className="icon-badge" style={{ padding: '12px', borderRadius: '12px', background: 'rgba(99,102,241,0.15)' }}>
               <Activity size={28} color="var(--primary)" />
             </div>
           </div>
@@ -125,18 +139,18 @@ export default function Risk({ merchantId }) {
       {/* Fraud Breakdown + Alerts */}
       <div className="grid-cols-2">
         {/* Fraud Type Breakdown */}
-        <div className="glass-card">
+        <div className="glass-card" aria-label="Fraud type breakdown chart">
           <div className="card-header">
             <h3 className="card-title"><ShieldAlert size={18} color="var(--danger)" /> Fraud Type Breakdown</h3>
             <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{totalFraudCases} total cases detected</span>
           </div>
 
-          {chartData.length > 0 ? (
+          {filteredChartData.length > 0 ? (
             <>
               {/* Horizontal bar chart */}
               <div style={{ height: '240px', marginTop: '8px' }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} layout="vertical" margin={{ left: 0, right: 40, top: 5, bottom: 5 }}>
+                  <BarChart data={filteredChartData} layout="vertical" margin={{ left: 0, right: 40, top: 5, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
                     <XAxis type="number" stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} />
                     <YAxis dataKey="label" type="category" stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} width={140} />
@@ -146,7 +160,7 @@ export default function Risk({ merchantId }) {
                       cursor={{ fill: 'rgba(255,255,255,0.04)' }}
                     />
                     <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={20}>
-                      {chartData.map((_, idx) => (
+                      {filteredChartData.map((_, idx) => (
                         <Cell key={idx} fill={FRAUD_COLORS[idx % FRAUD_COLORS.length]} />
                       ))}
                     </Bar>
@@ -156,11 +170,8 @@ export default function Risk({ merchantId }) {
 
               {/* Detailed list */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '16px' }}>
-                {chartData.map((row, i) => (
-                  <div key={i} style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '10px 14px', borderRadius: '10px',
-                    background: 'rgba(255,255,255,0.03)',
+                {filteredChartData.map((row, i) => (
+                  <div key={i} className="list-card" style={{
                     border: `1px solid ${FRAUD_COLORS[i % FRAUD_COLORS.length]}33`
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -184,8 +195,8 @@ export default function Risk({ merchantId }) {
           ) : (
             <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
               <ShieldCheck size={52} style={{ margin: '0 auto 12px', color: '#10b981', display: 'block' }} />
-              <p style={{ fontSize: '16px', color: '#fff' }}>No Fraud Detected</p>
-              <p style={{ fontSize: '13px', marginTop: '4px' }}>This merchant has a clean transaction history.</p>
+              <p style={{ fontSize: '16px', color: '#fff' }}>{searchQuery ? `No fraud types matching "${searchQuery}"` : 'No Fraud Detected'}</p>
+              <p style={{ fontSize: '13px', marginTop: '4px' }}>{searchQuery ? '' : 'This merchant has a clean transaction history.'}</p>
             </div>
           )}
         </div>
@@ -204,7 +215,7 @@ export default function Risk({ merchantId }) {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '8px' }}>
-            {alerts.map((alert, idx) => {
+            {filteredAlerts.length > 0 ? filteredAlerts.map((alert, idx) => {
               const c = RISK_COLORS[alert.type] || RISK_COLORS.info;
               return (
                 <div key={idx} style={{
@@ -225,7 +236,11 @@ export default function Risk({ merchantId }) {
                   </div>
                 </div>
               );
-            })}
+            }) : (
+              <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
+                {searchQuery ? `No alerts matching "${searchQuery}"` : 'No alerts'}
+              </div>
+            )}
           </div>
 
           {/* Risk Score Summary */}
@@ -237,7 +252,7 @@ export default function Risk({ merchantId }) {
               { label: 'Decline Rate', value: parseFloat(declineRate), max: 100, color: '#f59e0b' }
             ].map((item, i) => (
               <div key={i} style={{ marginBottom: i < 2 ? '14px' : 0 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <div className="stat-row" style={{ marginBottom: '6px' }}>
                   <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{item.label}</span>
                   <span style={{ fontSize: '13px', fontWeight: '700', color: item.color }}>{item.value}%</span>
                 </div>
