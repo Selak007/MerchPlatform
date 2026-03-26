@@ -101,7 +101,7 @@ export default function Customers({ merchantId, searchQuery }) {
             {filteredSegments.length > 0 ? filteredSegments.map((seg, idx) => (
               <div key={idx} className="list-card">
                 <div>
-                  <h4 style={{ fontSize: '15px', color: '#fff', marginBottom: '4px' }}>{seg.segment}</h4>
+                  <h4 style={{ fontSize: '15px', color: 'var(--text-heading)', marginBottom: '4px' }}>{seg.segment}</h4>
                   <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{seg.count.toLocaleString()} Users</p>
                 </div>
                 <div style={{
@@ -134,10 +134,10 @@ export default function Customers({ merchantId, searchQuery }) {
                     <stop offset="95%" stopColor="var(--info)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-stroke)" vertical={false} />
                 <XAxis dataKey="day" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', color: '#fff' }} />
+                <Tooltip contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', color: 'var(--text-heading)' }} />
                 <Area type="monotone" dataKey="active" stroke="var(--info)" strokeWidth={3} fillOpacity={1} fill="url(#colorActive)" name="Active Customers" />
               </AreaChart>
             </ResponsiveContainer>

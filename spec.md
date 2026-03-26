@@ -1,379 +1,323 @@
-# Enhance UI — Implementation Plan
+# Implementation Plan: Add Dark Mode Feature
 
-**GitHub Issue:** https://github.com/Selak007/MerchPlatform/issues/2  
-**Title:** Enhance UI  
-**Status:** Open (no body — general UI improvement request)
-
----
-
-## Executive Summary
-
-The MerchPlatform frontend ("Lumina Pay") is a React/Vite merchant analytics dashboard with a glassmorphism dark theme. While the visual foundation is solid, there are several concrete issues: unused components that were built but never wired in, missing responsive design, non-functional interactive elements, deprecated APIs, and an incomplete page-routing setup. This plan addresses all of these with specific file-level changes.
+**GitHub Issue:** https://github.com/Selak007/MerchPlatform/issues/6  
+**Project:** MerchPlatform (Lumina Pay) — React + Vite frontend  
+**Date:** 2026-03-26
 
 ---
 
-## Current State Analysis
+## 1. Problem Statement
 
-| Area | Issue |
-|---|---|
-| **Routing** | `Settings` page exists (`pages/Settings.jsx`) but is never rendered in `App.jsx`. The sidebar "Settings" button does nothing. |
-| **Routing** | `assistant` tab in sidebar renders the "Under Construction" fallback instead of showing anything useful. |
-| **Unused Components** | `NotificationDropdown.jsx` exists with full functionality (live fetch, mark-as-read, polling) but `TopHeader.jsx` uses a static `<Bell>` icon instead. |
-| **Unused Components** | `DateRangePicker.jsx` exists with quick-select buttons and custom range inputs, but no page uses it. |
-| **Responsiveness** | Zero media queries in component code. Sidebar is fixed 280px with no collapse. Grid layouts (`grid-cols-3`, `grid-cols-4`) don't adapt to smaller screens. |
-| **HTML Meta** | `<title>` is "frontend" instead of "Lumina Pay". No meta description. |
-| **Deprecated API** | `AIAssistantPanel.jsx` uses `onKeyPress` (deprecated) — should be `onKeyDown`. |
-| **Search** | The search input in `TopHeader` is purely decorative — no filtering or navigation logic. |
-| **Accessibility** | Buttons lack `aria-label` attributes. No keyboard focus indicators on cards. Color-only status indicators (no text fallback in some places). |
-| **Inline Styles** | Most components use heavy inline `style={{}}` objects. While functional, this prevents hover/focus pseudo-class styling and makes the code harder to maintain. |
+The Lumina Pay dashboard is currently **hard-coded to a dark theme only**. The Settings page already has a theme toggle (dark/light buttons) that writes to `localStorage`, but selecting "light" does absolutely nothing — no CSS variables change, no class is applied, and every component uses hardcoded dark colors (`#fff`, `rgba(0,0,0,...)`, `rgba(255,255,255,...)`) in both CSS and inline styles.
+
+**Goal:** Make the light/dark toggle fully functional so the entire UI switches seamlessly between dark mode and light mode.
 
 ---
 
-## Implementation Plan
+## 2. Architecture & Approach
 
-### 1. Wire Up Missing Pages & Components
+### 2.1 Theme Context (React Context API)
 
-#### 1a. Add Settings page to App.jsx routing
+Create a `ThemeContext` that:
+- Reads the initial theme from `localStorage` key `lumina-pay-settings` (field `theme`), defaulting to `"dark"`.
+- Exposes `{ theme, setTheme }` to the entire component tree.
+- On theme change, applies `data-theme="light"` or `data-theme="dark"` to `document.documentElement`.
+- Persists the choice back to `localStorage`.
 
-**File:** `frontend/src/App.jsx`
+### 2.2 CSS Custom Properties (dual palette)
 
-- Import `Settings` from `./pages/Settings`.
-- Add `case 'settings':` to `renderContent()` that returns `<Settings />`.
-- Update `getPageTitle()` to return `'Platform Settings'` for `'settings'`.
-- Update the sidebar `Settings` button in `Sidebar.jsx` to call `setActiveTab('settings')` (requires passing the prop or lifting state). Currently the sidebar already receives `setActiveTab` but the Settings button at the bottom doesn't use it.
+Define two complete palettes in `index.css` using the `[data-theme]` attribute selector:
+- `:root, [data-theme="dark"]` — current dark palette (unchanged).
+- `[data-theme="light"]` — new light palette overriding every CSS variable.
 
-**File:** `frontend/src/components/Sidebar.jsx`
+### 2.3 Eliminate hardcoded colors in JSX inline styles
 
-- Make the bottom "Settings" button call `setActiveTab('settings')` by adding an `onClick` handler.
-- Make the "Logout" button a no-op with a `window.confirm()` prompt for now.
-
-#### 1b. Fix the "assistant" tab
-
-**File:** `frontend/src/App.jsx`
-
-- Add `case 'assistant':` to `renderContent()`. Render a dedicated full-page AI assistant view (a larger version of the chat panel) instead of the "Under Construction" fallback.
-- Create a new component `frontend/src/pages/Assistant.jsx`:
-  - Full-width chat interface reusing the same message state and send logic from `AIAssistantPanel.jsx`.
-  - Show a "Suggested Questions" section with clickable prompt chips (e.g., "Show weekend revenue trends", "What's my fraud risk?", "How to improve repeat rate?").
-  - Glassmorphism card styling consistent with the rest of the app.
-
-#### 1c. Replace static bell icon with NotificationDropdown
-
-**File:** `frontend/src/components/TopHeader.jsx`
-
-- Import `NotificationDropdown` from `./NotificationDropdown`.
-- Replace the existing static `<button>` wrapping the `<Bell>` icon and red dot with:
-  ```jsx
-  <NotificationDropdown merchantId={selectedMerchant} />
-  ```
-- Remove the inline bell button JSX (lines ~35-47 approximately).
-
-#### 1d. Integrate DateRangePicker into Dashboard and Revenue pages
-
-**File:** `frontend/src/pages/Dashboard.jsx`
-
-- Import `DateRangePicker` from `../components/DateRangePicker`.
-- Add `dateRange` state: `const [dateRange, setDateRange] = useState({ from: null, to: null })`.
-- Render `<DateRangePicker dateRange={dateRange} onDateRangeChange={setDateRange} />` inside the page header area (above the first grid row).
-- Pass `dateRange.from` and `dateRange.to` as query params to the API call (the backend currently ignores them, but this wires the UI for future use).
-
-**File:** `frontend/src/pages/Revenue.jsx`
-
-- Same integration as Dashboard: add state, render picker, pass to API call.
+Replace every hardcoded color in inline `style={{}}` objects across all components/pages with CSS variable references so they respond to the theme switch.
 
 ---
 
-### 2. Responsive Design
+## 3. Detailed File Changes
 
-#### 2a. Add responsive CSS rules
+### 3.1 NEW FILE: `frontend/src/context/ThemeContext.jsx`
 
-**File:** `frontend/src/index.css`
+```jsx
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-Add the following media query blocks at the end of the file:
+const ThemeContext = createContext(undefined);
 
-```css
-/* ── Responsive: Tablets (≤1024px) ── */
-@media (max-width: 1024px) {
-  .sidebar {
-    width: 72px;
-    padding: 16px 8px;
-    align-items: center;
-  }
-  .sidebar .nav-item span,
-  .sidebar .sidebar-logo span,
-  .sidebar-nav button span:not(.sr-only) {
-    display: none;
-  }
-  .sidebar-logo {
-    font-size: 0;
-    margin-bottom: 24px;
-  }
-  .nav-item {
-    justify-content: center;
-    padding: 12px;
-  }
-  .main-content {
-    padding: 24px 20px;
-  }
-  .grid-cols-3 { grid-template-columns: repeat(2, 1fr); }
-  .grid-cols-4 { grid-template-columns: repeat(2, 1fr); }
-  .top-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
+const STORAGE_KEY = 'lumina-pay-settings';
+
+function getInitialTheme() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed.theme === 'light' || parsed.theme === 'dark') {
+        return parsed.theme;
+      }
+    }
+  } catch (_e) { /* ignore */ }
+  return 'dark';
 }
 
-/* ── Responsive: Mobile (≤640px) ── */
-@media (max-width: 640px) {
-  .app-container {
-    flex-direction: column;
-    height: auto;
-    min-height: 100vh;
-  }
-  .sidebar {
-    width: 100%;
-    flex-direction: row;
-    overflow-x: auto;
-    padding: 8px 12px;
-    border-right: none;
-    border-bottom: 1px solid var(--card-border);
-  }
-  .sidebar-nav {
-    flex-direction: row;
-    gap: 4px;
-  }
-  .main-content {
-    padding: 16px 12px;
-    overflow-y: visible;
-  }
-  .grid-cols-2,
-  .grid-cols-3,
-  .grid-cols-4 {
-    grid-template-columns: 1fr;
-  }
-  .page-title { font-size: 24px; }
-  .metric-value { font-size: 28px; }
+export function ThemeProvider({ children }) {
+  const [theme, setThemeState] = useState(getInitialTheme);
+
+  // Apply data-theme attribute on <html>
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  const setTheme = (newTheme) => {
+    setThemeState(newTheme);
+    // Also persist into the settings blob in localStorage
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      const settings = stored ? JSON.parse(stored) : {};
+      settings.theme = newTheme;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    } catch (_e) { /* ignore */ }
+  };
+
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+export function useTheme() {
+  const ctx = useContext(ThemeContext);
+  if (!ctx) throw new Error('useTheme must be used within ThemeProvider');
+  return ctx;
 }
 ```
 
-#### 2b. Fix grid-span elements on small screens
+### 3.2 MODIFY: `frontend/src/main.jsx`
 
-**File:** `frontend/src/pages/Dashboard.jsx`
+Wrap `<App />` with `<ThemeProvider>`.
 
-- The health score card uses `gridColumn: 'span 2'` inline. Wrap these in a CSS class (e.g., `span-2`) so the responsive rules can override them:
-  - Add `.span-2 { grid-column: span 2; }` and `@media (max-width: 640px) { .span-2 { grid-column: span 1; } }` to `index.css`.
-  - Replace `style={{ gridColumn: 'span 2' }}` with `className="span-2"` in Dashboard, Revenue, and Settings pages.
+```jsx
+import { ThemeProvider } from './context/ThemeContext.jsx';
+// ...
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
+  </StrictMode>,
+);
+```
 
----
+### 3.3 MODIFY: `frontend/src/index.css` — Add light theme palette
 
-### 3. HTML & Meta Improvements
+Add the following block **after** the existing `:root { ... }` block:
 
-**File:** `frontend/index.html`
+```css
+[data-theme="light"] {
+  --bg-color: #f4f6fb;
+  --bg-gradient: radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.07), transparent 30%),
+                 radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.05), transparent 30%);
+  --sidebar-bg: rgba(255, 255, 255, 0.85);
+  --card-bg: rgba(255, 255, 255, 0.75);
+  --card-border: rgba(0, 0, 0, 0.08);
 
-- Change `<title>frontend</title>` to `<title>Lumina Pay — Merchant Analytics</title>`.
-- Add `<meta name="description" content="AI-powered merchant analytics dashboard for revenue tracking, fraud monitoring, and customer insights." />`.
-- Add `<meta name="theme-color" content="#0d0f1a" />`.
+  --text-main: #1e293b;
+  --text-muted: #64748b;
 
----
+  --primary: #6366f1;
+  --primary-glow: rgba(99, 102, 241, 0.25);
+  --secondary: #8b5cf6;
+  --success: #059669;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --info: #2563eb;
+}
+```
 
-### 4. Fix Deprecated API Usage
+Additionally, introduce **new semantic CSS variables** in `:root` (dark defaults) that cover the hardcoded colors currently found in inline styles, and mirror them in `[data-theme="light"]`:
 
-**File:** `frontend/src/components/AIAssistantPanel.jsx`
+| New Variable | Dark Value | Light Value | Replaces |
+|---|---|---|---|
+| `--text-heading` | `#ffffff` | `#0f172a` | all `color: '#fff'` in JSX |
+| `--bg-inset` | `rgba(0, 0, 0, 0.2)` | `rgba(0, 0, 0, 0.04)` | `background: 'rgba(0,0,0,0.2)'` |
+| `--bg-inset-light` | `rgba(0, 0, 0, 0.3)` | `rgba(0, 0, 0, 0.06)` | `background: 'rgba(0,0,0,0.3)'` |
+| `--bg-subtle` | `rgba(255,255,255,0.03)` | `rgba(0,0,0,0.02)` | `rgba(255,255,255,0.03)` |
+| `--bg-subtle-hover` | `rgba(255,255,255,0.05)` | `rgba(0,0,0,0.04)` | hover backgrounds |
+| `--bg-overlay` | `rgba(255,255,255,0.08)` | `rgba(0,0,0,0.06)` | button overlays |
+| `--bg-overlay-light` | `rgba(255,255,255,0.1)` | `rgba(0,0,0,0.07)` | chat user msg bg |
+| `--grid-stroke` | `rgba(255,255,255,0.05)` | `rgba(0,0,0,0.08)` | Recharts `CartesianGrid` stroke |
+| `--bar-track` | `rgba(255,255,255,0.1)` | `rgba(0,0,0,0.08)` | progress bar tracks |
+| `--shadow-card` | `0 8px 32px rgba(0,0,0,0.2)` | `0 8px 32px rgba(0,0,0,0.06)` | card box-shadow |
 
-- Replace `onKeyPress={(e) => e.key === 'Enter' && handleSend()}` with `onKeyDown={(e) => e.key === 'Enter' && handleSend()}`.
+### 3.4 MODIFY: `frontend/src/index.css` — Update existing selectors
 
----
-
-### 5. Implement Basic Search Functionality
-
-**File:** `frontend/src/components/TopHeader.jsx`
-
-- Add a `searchQuery` state and `onSearch` callback prop.
-- On Enter key or after a debounce (300ms), call `onSearch(query)`.
-
-**File:** `frontend/src/App.jsx`
-
-- Add `searchQuery` state.
-- Pass `onSearch={setSearchQuery}` to `TopHeader`.
-- Pass `searchQuery` to `Dashboard`, `Revenue`, `Customers`, `Risk`, `Insights` as a prop.
-- In each page component, add a simple client-side filter: if `searchQuery` is non-empty, filter displayed recommendation text, alert titles, segment names, and fraud type labels to show only matching items. This provides immediate visual feedback without backend changes.
-
----
-
-### 6. Accessibility Improvements
-
-**Files:** All component files
-
-- **Sidebar.jsx**: Add `aria-label` to nav buttons. Add `role="navigation"` to `<nav>`.
-- **TopHeader.jsx**: Add `aria-label="Search insights"` to search input. Add `aria-label="Notifications"` to bell button (handled by NotificationDropdown which already has `data-testid`).
-- **AIAssistantPanel.jsx**: Add `aria-label="Open AI Assistant"` to the floating button. Add `role="log"` and `aria-live="polite"` to the messages container.
-- **Dashboard.jsx / Risk.jsx**: Add `aria-label` to chart containers for screen readers.
-
-**File:** `frontend/src/index.css`
-
-- Add focus-visible styles for interactive elements:
+- In `.glass-card`, `.glass-card:hover`, `.nav-item:hover`, `.nav-item.active`, `.chat-message.user`, `.alert-item`, `.skeleton`, etc., replace any remaining hardcoded `rgba(255,255,255,...)` backgrounds with the corresponding new variables.
+- Update `body` selector: `color: var(--text-main)` (already correct), scrollbar colors for light mode.
+- Add a light-mode scrollbar rule:
   ```css
-  .nav-item:focus-visible,
-  .glass-card:focus-visible,
-  button:focus-visible {
-    outline: 2px solid var(--primary);
-    outline-offset: 2px;
-  }
+  [data-theme="light"] ::-webkit-scrollbar-track { background: rgba(0,0,0,0.03); }
+  [data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); }
   ```
 
----
+### 3.5 MODIFY: `frontend/src/pages/Settings.jsx`
 
-### 7. Minor Visual Polish
+- Import `useTheme` from `../context/ThemeContext.jsx`.
+- In the theme toggle buttons, call `setTheme(t)` from context **in addition to** the existing `update('theme', t)` local state call. This ensures the context and `<html>` attribute update immediately.
+- Replace all inline `color: '#fff'` with `color: 'var(--text-heading)'`.
+- Replace `background: 'rgba(0,0,0,0.3)'` → `background: 'var(--bg-inset-light)'`.
+- Replace `background: 'rgba(255,255,255,0.08)'` → `background: 'var(--bg-overlay)'`.
+- Replace `background: 'rgba(255,255,255,0.03)'` → `background: 'var(--bg-subtle)'`.
+- Replace `boxShadow: '0 8px 32px rgba(0,0,0,0.2)'` → `boxShadow: 'var(--shadow-card)'`.
 
-#### 7a. Add subtle page transition animation
+### 3.6 MODIFY: `frontend/src/pages/Dashboard.jsx`
 
-**File:** `frontend/src/index.css`
+Replace all inline hardcoded colors:
+- `color: '#fff'` → `color: 'var(--text-heading)'`
+- `stroke="rgba(255,255,255,0.05)"` on `<CartesianGrid>` → use the CSS variable via a constant `const gridStroke = 'var(--grid-stroke)'` (Recharts accepts CSS variable strings).
+- `Tooltip contentStyle` `color: '#fff'` → `color: 'var(--text-heading)'`
+- `background: 'rgba(255,255,255,0.05)'` → `background: 'var(--bg-subtle-hover)'`
 
-```css
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.page-enter {
-  animation: fadeIn 0.3s ease-out;
-}
-```
+### 3.7 MODIFY: `frontend/src/pages/Revenue.jsx`
 
-**File:** `frontend/src/App.jsx`
+Same pattern as Dashboard:
+- Replace `color: '#fff'` → `color: 'var(--text-heading)'`
+- Replace Recharts grid stroke and tooltip colors with CSS variables.
+- Replace `cursor: { fill: 'rgba(255,255,255,0.05)' }` → `cursor: { fill: 'var(--grid-stroke)' }`
 
-- Wrap the `renderContent()` output in a `<div key={activeTab} className="page-enter">` so the animation triggers on tab change.
+### 3.8 MODIFY: `frontend/src/pages/Customers.jsx`
 
-#### 7b. Improve skeleton loading states
+- Replace `color: '#fff'` → `color: 'var(--text-heading)'`
+- Replace Recharts colors as above.
 
-**File:** `frontend/src/index.css`
+### 3.9 MODIFY: `frontend/src/pages/Risk.jsx`
 
-- Add a `.skeleton-text` class (narrower, 16px height) and `.skeleton-circle` class for avatar placeholders, to supplement the existing `.skeleton` class.
+- Replace `color: '#fff'` → `color: 'var(--text-heading)'`
+- Replace `background: 'rgba(255,255,255,0.1)'` → `background: 'var(--bar-track)'`
+- Replace `background: 'rgba(255,255,255,0.03)'` → `background: 'var(--bg-subtle)'`
+- Replace `background: 'rgba(255,255,255,0.08)'` → `background: 'var(--bg-overlay)'`
+- Replace Recharts grid/tooltip/cursor colors.
 
-#### 7c. Add empty-state illustrations
+### 3.10 MODIFY: `frontend/src/pages/Insights.jsx`
 
-**File:** `frontend/src/pages/Dashboard.jsx` and others
+- Replace `color: '#fff'` → `color: 'var(--text-heading)'`
+- Replace `rgba(255,255,255,0.05)` → `var(--grid-stroke)`
 
-- When data arrays are empty, show a centered icon + message instead of blank space (some pages already do this, standardize across all).
+### 3.11 MODIFY: `frontend/src/pages/Assistant.jsx`
 
----
+- Replace `color: '#fff'` → `color: 'var(--text-heading)'`
+- Replace `background: 'rgba(0,0,0,0.2)'` → `background: 'var(--bg-inset)'`
 
-### 8. Extract Inline Styles to CSS Classes (High-Impact Spots)
+### 3.12 MODIFY: `frontend/src/components/TopHeader.jsx`
 
-Rather than rewriting every inline style (which would be a massive diff), target the **most-repeated** patterns and extract them to `index.css`:
+- Replace `color: '#fff'` → `color: 'var(--text-heading)'`
+- Replace `background: 'rgba(0,0,0,0.3)'` → `background: 'var(--bg-inset-light)'`
+- Replace `background: 'rgba(255,255,255,0.05)'` → `background: 'var(--bg-subtle-hover)'`
 
-**File:** `frontend/src/index.css` — add these utility classes:
+### 3.13 MODIFY: `frontend/src/components/Sidebar.jsx`
 
-```css
-/* Metric icon badge */
-.icon-badge {
-  padding: 8px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.icon-badge--primary { background: rgba(99,102,241,0.15); color: var(--primary); }
-.icon-badge--success { background: rgba(16,185,129,0.15); color: var(--success); }
-.icon-badge--danger  { background: rgba(239,68,68,0.15); color: var(--danger); }
-.icon-badge--warning { background: rgba(245,158,11,0.15); color: var(--warning); }
-.icon-badge--info    { background: rgba(59,130,246,0.15); color: var(--info); }
+- The sidebar logo uses `color="white"` on the icon — change to `color="var(--text-heading)"` or keep white since it's on a primary-colored badge (acceptable).
+- No other changes needed — already uses CSS classes with variables.
 
-/* Stat row used in many cards */
-.stat-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+### 3.14 MODIFY: `frontend/src/components/NotificationDropdown.jsx`
 
-/* List item card (recommendations, segments, fraud rows) */
-.list-card {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 14px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+- Audit for hardcoded colors and replace with CSS variables (same pattern).
 
-/* Responsive span helpers */
-.span-2 { grid-column: span 2; }
-.span-3 { grid-column: span 3; }
-@media (max-width: 640px) {
-  .span-2, .span-3 { grid-column: span 1; }
-}
-```
+### 3.15 MODIFY: `frontend/src/components/AIAssistantPanel.jsx`
 
-Then update the highest-repetition inline styles in `Dashboard.jsx`, `Risk.jsx`, `Customers.jsx`, and `Insights.jsx` to use these classes.
+- Audit and replace hardcoded colors with CSS variables.
+
+### 3.16 MODIFY: `frontend/src/App.css`
+
+- Replace any `var(--border)` references if they exist (they reference a non-existent variable). This file appears to be leftover Vite scaffolding and may not need changes if unused.
 
 ---
 
-## Files Changed Summary
+## 4. Light Theme Color Palette (Design Reference)
 
-| File | Action | Description |
+| Element | Dark Mode | Light Mode |
 |---|---|---|
-| `frontend/index.html` | **Modify** | Update title, add meta tags |
-| `frontend/src/index.css` | **Modify** | Add responsive breakpoints, utility classes, animations, focus styles |
-| `frontend/src/App.jsx` | **Modify** | Wire Settings + Assistant routes, add search state, page transition wrapper |
-| `frontend/src/components/Sidebar.jsx` | **Modify** | Wire Settings onClick, add aria attributes |
-| `frontend/src/components/TopHeader.jsx` | **Modify** | Replace static bell with NotificationDropdown, add search logic |
-| `frontend/src/components/AIAssistantPanel.jsx` | **Modify** | Fix `onKeyPress` → `onKeyDown`, add aria attributes |
-| `frontend/src/pages/Assistant.jsx` | **Create** | Full-page AI assistant chat view with suggested prompts |
-| `frontend/src/pages/Dashboard.jsx` | **Modify** | Integrate DateRangePicker, use CSS classes for spans, add search filtering |
-| `frontend/src/pages/Revenue.jsx` | **Modify** | Integrate DateRangePicker, use CSS classes |
-| `frontend/src/pages/Customers.jsx` | **Modify** | Use CSS utility classes, add search filtering |
-| `frontend/src/pages/Risk.jsx` | **Modify** | Use CSS utility classes, add search filtering |
-| `frontend/src/pages/Insights.jsx` | **Modify** | Use CSS utility classes, add search filtering |
-| `frontend/src/pages/Settings.jsx` | No changes | Already complete, just needs routing |
+| Page background | `#0d0f1a` | `#f4f6fb` |
+| Sidebar background | `rgba(18,20,31,0.6)` | `rgba(255,255,255,0.85)` |
+| Card background | `rgba(26,28,43,0.5)` | `rgba(255,255,255,0.75)` |
+| Card border | `rgba(255,255,255,0.08)` | `rgba(0,0,0,0.08)` |
+| Primary text | `#f0f2f5` | `#1e293b` |
+| Heading text | `#ffffff` | `#0f172a` |
+| Muted text | `#94a3b8` | `#64748b` |
+| Card shadow | `rgba(0,0,0,0.2)` | `rgba(0,0,0,0.06)` |
+| Page title gradient | `#fff → #a5b4fc` | `#0f172a → #6366f1` |
 
 ---
 
-## New File: `frontend/src/pages/Assistant.jsx`
+## 5. CSS Variable Strategy for `.page-title` Gradient
 
-Full-page AI assistant with:
-- A tall chat message area (flex-1, scrollable)
-- Input bar at the bottom with `onKeyDown` enter-to-send
-- A row of clickable "Suggested Questions" chips above the input
-- Simulated AI responses (same pattern as AIAssistantPanel)
-- Glassmorphism card container with gradient header
-
-Structure:
+Add to `:root`:
+```css
+--title-gradient-from: #fff;
+--title-gradient-to: #a5b4fc;
 ```
-Assistant()
-├── state: messages[], input, suggestedQuestions[]
-├── handleSend() — push user message, simulate AI reply after 1.5s
-├── render:
-│   ├── glass-card (full height)
-│   │   ├── Header: icon + "AI Business Coach" + "Online" badge
-│   │   ├── Messages area (scrollable, chat-message ai/user classes)
-│   │   ├── Suggested Questions row (only shown when messages.length < 3)
-│   │   └── Input bar: chat-input + send button
+Add to `[data-theme="light"]`:
+```css
+--title-gradient-from: #0f172a;
+--title-gradient-to: #6366f1;
+```
+Update `.page-title`:
+```css
+background: linear-gradient(90deg, var(--title-gradient-from), var(--title-gradient-to));
 ```
 
 ---
 
-## Priority Order
+## 6. Implementation Order
 
-1. **Wire missing routes** (Settings, Assistant) — highest user-facing impact, low effort
-2. **Integrate NotificationDropdown** into TopHeader — component already exists, just needs swapping
-3. **Integrate DateRangePicker** — component exists, needs state wiring
-4. **Fix deprecated `onKeyPress`** — one-line fix
-5. **Update HTML meta** — one-line fix
-6. **Add responsive CSS** — medium effort, high impact for mobile users
-7. **Implement search** — medium effort, good UX improvement
-8. **Add accessibility attributes** — scattered small changes
-9. **Page transition animation** — small CSS + JSX change
-10. **Extract inline styles to classes** — lower priority, improves maintainability
+| Step | Task | Files |
+|---|---|---|
+| 1 | Create `ThemeContext` | `frontend/src/context/ThemeContext.jsx` (new) |
+| 2 | Wrap app in `ThemeProvider` | `frontend/src/main.jsx` |
+| 3 | Add light CSS palette & new semantic variables | `frontend/src/index.css` |
+| 4 | Wire Settings page toggle to context | `frontend/src/pages/Settings.jsx` |
+| 5 | Replace hardcoded colors in `Dashboard.jsx` | `frontend/src/pages/Dashboard.jsx` |
+| 6 | Replace hardcoded colors in `Revenue.jsx` | `frontend/src/pages/Revenue.jsx` |
+| 7 | Replace hardcoded colors in `Customers.jsx` | `frontend/src/pages/Customers.jsx` |
+| 8 | Replace hardcoded colors in `Risk.jsx` | `frontend/src/pages/Risk.jsx` |
+| 9 | Replace hardcoded colors in `Insights.jsx` | `frontend/src/pages/Insights.jsx` |
+| 10 | Replace hardcoded colors in `Assistant.jsx` | `frontend/src/pages/Assistant.jsx` |
+| 11 | Replace hardcoded colors in `TopHeader.jsx` | `frontend/src/components/TopHeader.jsx` |
+| 12 | Replace hardcoded colors in `AIAssistantPanel.jsx` | `frontend/src/components/AIAssistantPanel.jsx` |
+| 13 | Replace hardcoded colors in `NotificationDropdown.jsx` | `frontend/src/components/NotificationDropdown.jsx` |
+| 14 | Update `.page-title` gradient in CSS | `frontend/src/index.css` |
+| 15 | Smoke test: toggle between dark/light on every page | manual |
 
 ---
 
-## Testing Notes
+## 7. Files Summary
 
-- After implementation, verify all 6 sidebar tabs render their pages (no "Under Construction" for wired tabs).
-- Verify NotificationDropdown opens/closes on bell click, shows unread badge.
-- Verify DateRangePicker appears on Dashboard and Revenue pages, quick-select buttons work.
-- Resize browser to ≤1024px: sidebar should collapse to icons only, grids should reflow.
-- Resize to ≤640px: sidebar should become a horizontal bar, all grids should stack to single column.
-- Press Tab through the page: focus rings should be visible on all interactive elements.
-- Type in search bar and press Enter: displayed items should filter visibly.
+| Action | File |
+|---|---|
+| **CREATE** | `frontend/src/context/ThemeContext.jsx` |
+| **MODIFY** | `frontend/src/main.jsx` |
+| **MODIFY** | `frontend/src/index.css` |
+| **MODIFY** | `frontend/src/pages/Settings.jsx` |
+| **MODIFY** | `frontend/src/pages/Dashboard.jsx` |
+| **MODIFY** | `frontend/src/pages/Revenue.jsx` |
+| **MODIFY** | `frontend/src/pages/Customers.jsx` |
+| **MODIFY** | `frontend/src/pages/Risk.jsx` |
+| **MODIFY** | `frontend/src/pages/Insights.jsx` |
+| **MODIFY** | `frontend/src/pages/Assistant.jsx` |
+| **MODIFY** | `frontend/src/components/TopHeader.jsx` |
+| **MODIFY** | `frontend/src/components/AIAssistantPanel.jsx` |
+| **MODIFY** | `frontend/src/components/NotificationDropdown.jsx` |
+
+**Total: 1 new file, 12 modified files.**
+
+---
+
+## 8. Acceptance Criteria
+
+1. Clicking the "☀️ light" button on the Settings page immediately switches the entire UI to a light color scheme.
+2. Clicking "🌙 dark" restores the original dark theme.
+3. The chosen theme persists across page reloads (stored in `localStorage`).
+4. Every page (Dashboard, Revenue, Customers, Risk, Insights, Assistant, Settings) renders correctly in both modes with no illegible text, invisible elements, or broken contrast.
+5. Recharts charts (tooltips, grid lines, bar fills) adapt to the active theme.
+6. Sidebar, top header, notifications dropdown, and AI assistant panel all respect the theme.
+7. No regressions — all existing functionality continues to work.

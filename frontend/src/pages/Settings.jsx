@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Settings as SettingsIcon, Palette, AlertTriangle, Globe, User, Save, RotateCcw } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext.jsx';
 
 const STORAGE_KEY = 'lumina-pay-settings';
 
@@ -37,10 +38,15 @@ function saveSettings(settings) {
 export default function Settings() {
   const [settings, setSettings] = useState(loadSettings);
   const [saved, setSaved] = useState(false);
+  const { setTheme } = useTheme();
 
   const update = (key, value) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
     setSaved(false);
+    // If the theme is being changed, update the context immediately
+    if (key === 'theme') {
+      setTheme(value);
+    }
   };
 
   const handleSave = () => {
@@ -52,6 +58,7 @@ export default function Settings() {
   const handleReset = () => {
     setSettings({ ...DEFAULT_SETTINGS });
     saveSettings(DEFAULT_SETTINGS);
+    setTheme(DEFAULT_SETTINGS.theme);
     setSaved(false);
   };
 
@@ -62,7 +69,7 @@ export default function Settings() {
     border: '1px solid var(--card-border)',
     borderRadius: '16px',
     padding: '24px',
-    boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+    boxShadow: 'var(--shadow-card)',
   };
 
   const labelStyle = {
@@ -78,8 +85,8 @@ export default function Settings() {
     padding: '10px 14px',
     borderRadius: '10px',
     border: '1px solid var(--card-border)',
-    background: 'rgba(0,0,0,0.3)',
-    color: '#fff',
+    background: 'var(--bg-inset-light)',
+    color: 'var(--text-heading)',
     fontSize: '14px',
     fontFamily: 'inherit',
     outline: 'none',
@@ -110,15 +117,16 @@ export default function Settings() {
 
   const btnSecondary = {
     ...btnPrimary,
-    background: 'rgba(255,255,255,0.08)',
+    background: 'var(--bg-overlay)',
     boxShadow: 'none',
     border: '1px solid var(--card-border)',
+    color: 'var(--text-heading)',
   };
 
   const sectionTitle = (icon, title) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
       {icon}
-      <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#fff' }}>{title}</h3>
+      <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text-heading)' }}>{title}</h3>
     </div>
   );
 
@@ -133,7 +141,7 @@ export default function Settings() {
         transition: 'var(--transition)',
       }}>
         <div>
-          <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#fff', marginBottom: '4px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '600', color: 'var(--text-heading)', marginBottom: '4px' }}>
             <SettingsIcon size={20} style={{ verticalAlign: 'middle', marginRight: '8px' }} />
             Platform Settings
           </h2>
@@ -171,7 +179,7 @@ export default function Settings() {
                     padding: '12px',
                     borderRadius: '10px',
                     border: settings.theme === t ? '2px solid var(--primary)' : '1px solid var(--card-border)',
-                    background: settings.theme === t ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.03)',
+                    background: settings.theme === t ? 'rgba(99,102,241,0.15)' : 'var(--bg-subtle)',
                     color: settings.theme === t ? 'var(--primary)' : 'var(--text-muted)',
                     fontSize: '14px',
                     fontWeight: '600',

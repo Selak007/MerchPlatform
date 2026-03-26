@@ -112,7 +112,7 @@ export default function Risk({ merchantId, searchQuery }) {
             <div>
               <p className="metric-label">Approval Rate</p>
               <p style={{ fontSize: '40px', fontWeight: '800', color: '#10b981', lineHeight: 1.1 }}>{approvalRate}%</p>
-              <div style={{ marginTop: '8px', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden', width: '120px' }}>
+              <div style={{ marginTop: '8px', height: '6px', background: 'var(--bar-track)', borderRadius: '3px', overflow: 'hidden', width: '120px' }}>
                 <div style={{ width: `${approvalRate}%`, height: '100%', background: '#10b981', borderRadius: '3px' }}></div>
               </div>
             </div>
@@ -126,7 +126,7 @@ export default function Risk({ merchantId, searchQuery }) {
           <div className="stat-row" style={{ alignItems: 'flex-start' }}>
             <div>
               <p className="metric-label">Total Fraud Cases</p>
-              <p style={{ fontSize: '40px', fontWeight: '800', color: '#fff', lineHeight: 1.1 }}>{totalFraudCases}</p>
+              <p style={{ fontSize: '40px', fontWeight: '800', color: 'var(--text-heading)', lineHeight: 1.1 }}>{totalFraudCases}</p>
               <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '8px' }}>across {validFraud.length} fraud types</p>
             </div>
             <div className="icon-badge" style={{ padding: '12px', borderRadius: '12px', background: 'rgba(99,102,241,0.15)' }}>
@@ -151,13 +151,13 @@ export default function Risk({ merchantId, searchQuery }) {
               <div style={{ height: '240px', marginTop: '8px' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={filteredChartData} layout="vertical" margin={{ left: 0, right: 40, top: 5, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-stroke)" horizontal={false} />
                     <XAxis type="number" stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} />
                     <YAxis dataKey="label" type="category" stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} width={140} />
                     <Tooltip
-                      contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', color: '#fff' }}
+                      contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', color: 'var(--text-heading)' }}
                       formatter={(value, name) => [value, 'Cases']}
-                      cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+                      cursor={{ fill: 'var(--grid-stroke)' }}
                     />
                     <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={20}>
                       {filteredChartData.map((_, idx) => (
@@ -176,7 +176,7 @@ export default function Risk({ merchantId, searchQuery }) {
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: FRAUD_COLORS[i % FRAUD_COLORS.length], flexShrink: 0 }}></div>
-                      <span style={{ fontSize: '14px', color: '#fff' }}>{row.label}</span>
+                      <span style={{ fontSize: '14px', color: 'var(--text-heading)' }}>{row.label}</span>
                     </div>
                     <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                       <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{row.count} cases</span>
@@ -195,7 +195,7 @@ export default function Risk({ merchantId, searchQuery }) {
           ) : (
             <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
               <ShieldCheck size={52} style={{ margin: '0 auto 12px', color: '#10b981', display: 'block' }} />
-              <p style={{ fontSize: '16px', color: '#fff' }}>{searchQuery ? `No fraud types matching "${searchQuery}"` : 'No Fraud Detected'}</p>
+              <p style={{ fontSize: '16px', color: 'var(--text-heading)' }}>{searchQuery ? `No fraud types matching "${searchQuery}"` : 'No Fraud Detected'}</p>
               <p style={{ fontSize: '13px', marginTop: '4px' }}>{searchQuery ? '' : 'This merchant has a clean transaction history.'}</p>
             </div>
           )}
@@ -226,7 +226,7 @@ export default function Risk({ merchantId, searchQuery }) {
                     {alert.type === 'critical' ? <AlertTriangle size={20} /> : alert.type === 'warning' ? <TrendingDown size={20} /> : <ShieldCheck size={20} />}
                   </div>
                   <div>
-                    <h4 style={{ fontSize: '15px', color: '#fff', marginBottom: '4px', fontWeight: '600' }}>{alert.title}</h4>
+                    <h4 style={{ fontSize: '15px', color: 'var(--text-heading)', marginBottom: '4px', fontWeight: '600' }}>{alert.title}</h4>
                     <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5 }}>{alert.message}</p>
                   </div>
                   <div style={{ marginLeft: 'auto', flexShrink: 0 }}>
@@ -244,7 +244,7 @@ export default function Risk({ merchantId, searchQuery }) {
           </div>
 
           {/* Risk Score Summary */}
-          <div style={{ marginTop: '24px', padding: '20px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--card-border)' }}>
+          <div style={{ marginTop: '24px', padding: '20px', borderRadius: '12px', background: 'var(--bg-subtle)', border: '1px solid var(--card-border)' }}>
             <h4 style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Risk Level Summary</h4>
             {[
               { label: 'Fraud Rate', value: fraudRate, max: 10, color: riskColor },
@@ -256,7 +256,7 @@ export default function Risk({ merchantId, searchQuery }) {
                   <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{item.label}</span>
                   <span style={{ fontSize: '13px', fontWeight: '700', color: item.color }}>{item.value}%</span>
                 </div>
-                <div style={{ height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>
+                <div style={{ height: '6px', background: 'var(--bg-overlay)', borderRadius: '3px', overflow: 'hidden' }}>
                   <div style={{
                     width: `${Math.min(100, (item.value / item.max) * 100)}%`,
                     height: '100%', background: item.color, borderRadius: '3px',
