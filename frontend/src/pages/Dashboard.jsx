@@ -142,7 +142,7 @@ export default function Dashboard({ merchantId, searchQuery }) {
                   </div>
                   <div>
                     <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)' }}>{rec.type}</span>
-                    <p style={{ fontSize: '14px', color: '#fff', marginTop: '2px' }}>{rec.text}</p>
+                    <p style={{ fontSize: '14px', color: 'var(--text-heading)', marginTop: '2px' }}>{rec.text}</p>
                   </div>
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '16px' }}>
@@ -173,10 +173,10 @@ export default function Dashboard({ merchantId, searchQuery }) {
             {peakData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={peakData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-stroke)" vertical={false} />
                   <XAxis dataKey="hour" stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} />
                   <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', color: '#fff' }} />
+                  <Tooltip contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', color: 'var(--text-heading)' }} />
                   <Bar dataKey="txns" fill="var(--primary)" radius={[4, 4, 0, 0]} name="Transactions" />
                 </BarChart>
               </ResponsiveContainer>
@@ -205,7 +205,7 @@ export default function Dashboard({ merchantId, searchQuery }) {
                     <Cell key={i} fill={COLORS[i % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', color: '#fff' }} />
+                <Tooltip contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', color: 'var(--text-heading)' }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -216,7 +216,7 @@ export default function Dashboard({ merchantId, searchQuery }) {
                   <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLORS[idx % COLORS.length] }}></div>
                   <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{seg.segment}</span>
                 </div>
-                <span style={{ fontWeight: '600', color: '#fff', fontSize: '13px' }}>{seg.count}</span>
+                <span style={{ fontWeight: '600', color: 'var(--text-heading)', fontSize: '13px' }}>{seg.count}</span>
               </div>
             ))}
           </div>
@@ -254,13 +254,13 @@ export default function Dashboard({ merchantId, searchQuery }) {
                   <p className="metric-label">Your Avg Ticket</p>
                   <p style={{ fontSize: '28px', fontWeight: '700', color: 'var(--primary)' }}>${parseFloat(benchmarks.merchant_ticket || 0).toFixed(0)}</p>
                 </div>
-                <div style={{ flex: 1, background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+                <div style={{ flex: 1, background: 'var(--bg-subtle-hover)', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
                   <p className="metric-label">Industry Avg</p>
                   <p style={{ fontSize: '28px', fontWeight: '700', color: 'var(--text-muted)' }}>${parseFloat(benchmarks.industry_ticket || 0).toFixed(0)}</p>
                 </div>
               </div>
               <div style={{ padding: '12px 16px', background: parseFloat(benchmarks.performance_gap || 0) >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', borderRadius: '8px', borderLeft: `4px solid ${parseFloat(benchmarks.performance_gap || 0) >= 0 ? 'var(--success)' : 'var(--danger)'}` }}>
-                <p style={{ fontSize: '14px', color: '#fff' }}>
+                <p style={{ fontSize: '14px', color: 'var(--text-heading)' }}>
                   <strong>Performance Gap: </strong>
                   <span style={{ color: parseFloat(benchmarks.performance_gap || 0) >= 0 ? 'var(--success)' : 'var(--danger)' }}>
                     {parseFloat(benchmarks.performance_gap || 0) >= 0 ? '+' : ''}${parseFloat(benchmarks.performance_gap || 0).toFixed(2)} vs industry
@@ -282,10 +282,10 @@ export default function Dashboard({ merchantId, searchQuery }) {
             {categoryData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={categoryData} layout="vertical" margin={{ left: 20, right: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-stroke)" horizontal={false} />
                   <XAxis type="number" stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
                   <YAxis dataKey="name" type="category" stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} width={80} />
-                  <Tooltip contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', color: '#fff' }} formatter={v => [`$${parseFloat(v).toFixed(2)}`, 'Revenue']} />
+                  <Tooltip contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', color: 'var(--text-heading)' }} formatter={v => [`$${parseFloat(v).toFixed(2)}`, 'Revenue']} />
                   <Bar dataKey="revenue" fill="var(--success)" radius={[0, 4, 4, 0]} barSize={20} />
                 </BarChart>
               </ResponsiveContainer>

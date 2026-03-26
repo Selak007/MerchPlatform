@@ -114,7 +114,7 @@ export default function Assistant({ merchantId, searchQuery }) {
             style={{
               fontSize: '20px',
               fontWeight: '600',
-              color: '#fff',
+              color: 'var(--text-heading)',
               marginBottom: '2px',
             }}
           >
@@ -229,7 +229,7 @@ export default function Assistant({ merchantId, searchQuery }) {
         style={{
           padding: '20px 24px',
           borderTop: '1px solid var(--card-border)',
-          background: 'rgba(0,0,0,0.2)',
+          background: 'var(--bg-inset)',
         }}
       >
         <div style={{ display: 'flex', gap: '12px' }}>

@@ -86,7 +86,7 @@ export default function Revenue({ merchantId, searchQuery }) {
             </div>
             <div style={{ flex: 2, background: 'rgba(99,102,241,0.08)', borderRadius: '12px', padding: '20px' }}>
               <p className="metric-label">Pricing Recommendation</p>
-              <p style={{ fontSize: '15px', color: '#fff', marginTop: '8px' }}>
+              <p style={{ fontSize: '15px', color: 'var(--text-heading)', marginTop: '8px' }}>
                 {merchantTicket < industryTicket
                   ? `Your avg ticket ($${merchantTicket.toFixed(0)}) is below industry avg ($${industryTicket.toFixed(0)}). Recommend a 5–10% price increase on high-demand items.`
                   : `Your pricing is competitive. High variance ($${parseFloat(pricingSignal.price_variance || 0).toFixed(2)}) suggests opportunity to standardize premium tiers.`
@@ -109,10 +109,10 @@ export default function Revenue({ merchantId, searchQuery }) {
               <div style={{ height: '240px', width: '100%', marginTop: '20px' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={benchmarkChartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-stroke)" vertical={false} />
                     <XAxis dataKey="name" stroke="var(--text-muted)" tickLine={false} axisLine={false} />
                     <YAxis stroke="var(--text-muted)" tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
-                    <Tooltip contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', color: '#fff' }} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                    <Tooltip contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', color: 'var(--text-heading)' }} cursor={{ fill: 'var(--grid-stroke)' }} />
                     <Legend />
                     <Bar dataKey="You" fill="var(--primary)" radius={[4, 4, 0, 0]} barSize={50} />
                     <Bar dataKey="Industry" fill="rgba(148,163,184,0.4)" radius={[4, 4, 0, 0]} barSize={50} />
@@ -120,7 +120,7 @@ export default function Revenue({ merchantId, searchQuery }) {
                 </ResponsiveContainer>
               </div>
               <div style={{ marginTop: '16px', padding: '12px 16px', background: parseFloat(benchmarks?.performance_gap || 0) >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', borderRadius: '8px', borderLeft: `4px solid ${parseFloat(benchmarks?.performance_gap || 0) >= 0 ? 'var(--success)' : 'var(--danger)'}` }}>
-                <p style={{ fontSize: '14px', color: '#fff' }}>
+                <p style={{ fontSize: '14px', color: 'var(--text-heading)' }}>
                   <strong>Performance Gap: </strong>
                   <span style={{ color: parseFloat(benchmarks?.performance_gap || 0) >= 0 ? 'var(--success)' : 'var(--danger)' }}>
                     {parseFloat(benchmarks?.performance_gap || 0) >= 0 ? '+' : ''}${parseFloat(benchmarks?.performance_gap || 0).toFixed(2)} vs industry
@@ -147,7 +147,7 @@ export default function Revenue({ merchantId, searchQuery }) {
                         <Cell key={index} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', color: '#fff' }}
+                    <Tooltip contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', color: 'var(--text-heading)' }}
                       formatter={v => [`$${parseFloat(v).toFixed(2)}`, 'Revenue']} />
                   </PieChart>
                 </ResponsiveContainer>
@@ -159,7 +159,7 @@ export default function Revenue({ merchantId, searchQuery }) {
                       <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLORS[i % COLORS.length] }}></div>
                       <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{c.category || c.mcc}</span>
                     </div>
-                    <span style={{ fontWeight: '600', color: '#fff', fontSize: '13px' }}>${parseFloat(c.total_revenue || 0).toFixed(0)}</span>
+                    <span style={{ fontWeight: '600', color: 'var(--text-heading)', fontSize: '13px' }}>${parseFloat(c.total_revenue || 0).toFixed(0)}</span>
                   </div>
                 ))}
               </div>

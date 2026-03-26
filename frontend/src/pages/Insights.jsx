@@ -59,10 +59,10 @@ export default function Insights({ merchantId, searchQuery }) {
                 </div>
                 <div>
                   <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)' }}>{rec.type}</span>
-                  <h4 style={{ fontSize: '16px', color: '#fff', marginTop: '4px' }}>{rec.text}</h4>
+                  <h4 style={{ fontSize: '16px', color: 'var(--text-heading)', marginTop: '4px' }}>{rec.text}</h4>
                 </div>
               </div>
-              <div className="stat-row" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
+              <div className="stat-row" style={{ borderTop: '1px solid var(--grid-stroke)', paddingTop: '16px' }}>
                 <div>
                   <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Expected Revenue Impact</p>
                   <p style={{ fontSize: '20px', fontWeight: '700', color: 'var(--success)' }}>+${rec.impact || '—'}</p>

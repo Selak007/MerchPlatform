@@ -59,7 +59,7 @@ export default function AIAssistantPanel() {
             <Sparkles size={18} color="#fff" />
           </div>
           <div>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#fff', marginBottom: '2px' }}>AI Business Coach</h3>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-heading)', marginBottom: '2px' }}>AI Business Coach</h3>
             <p style={{ fontSize: '12px', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '4px' }}>
               <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--success)' }}></span> Online
             </p>
@@ -80,7 +80,7 @@ export default function AIAssistantPanel() {
       </div>
 
       {/* Input Area */}
-      <div style={{ padding: '20px', borderTop: '1px solid var(--card-border)', background: 'rgba(0,0,0,0.2)' }}>
+      <div style={{ padding: '20px', borderTop: '1px solid var(--card-border)', background: 'var(--bg-inset)' }}>
         <div style={{ display: 'flex', gap: '12px' }}>
           <input 
             type="text" 

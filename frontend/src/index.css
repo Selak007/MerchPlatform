@@ -23,6 +23,54 @@
   --blur: blur(16px);
   --radius: 16px;
   --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Semantic dark-mode defaults */
+  --text-heading: #ffffff;
+  --bg-inset: rgba(0, 0, 0, 0.2);
+  --bg-inset-light: rgba(0, 0, 0, 0.3);
+  --bg-subtle: rgba(255, 255, 255, 0.03);
+  --bg-subtle-hover: rgba(255, 255, 255, 0.05);
+  --bg-overlay: rgba(255, 255, 255, 0.08);
+  --bg-overlay-light: rgba(255, 255, 255, 0.1);
+  --grid-stroke: rgba(255, 255, 255, 0.05);
+  --bar-track: rgba(255, 255, 255, 0.1);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.2);
+  --title-gradient-from: #fff;
+  --title-gradient-to: #a5b4fc;
+}
+
+/* ── Light theme palette ── */
+[data-theme="light"] {
+  --bg-color: #f4f6fb;
+  --bg-gradient: radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.07), transparent 30%),
+                 radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.05), transparent 30%);
+  --sidebar-bg: rgba(255, 255, 255, 0.85);
+  --card-bg: rgba(255, 255, 255, 0.75);
+  --card-border: rgba(0, 0, 0, 0.08);
+
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+
+  --primary: #6366f1;
+  --primary-glow: rgba(99, 102, 241, 0.25);
+  --secondary: #8b5cf6;
+  --success: #059669;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --info: #2563eb;
+
+  --text-heading: #0f172a;
+  --bg-inset: rgba(0, 0, 0, 0.04);
+  --bg-inset-light: rgba(0, 0, 0, 0.06);
+  --bg-subtle: rgba(0, 0, 0, 0.02);
+  --bg-subtle-hover: rgba(0, 0, 0, 0.04);
+  --bg-overlay: rgba(0, 0, 0, 0.06);
+  --bg-overlay-light: rgba(0, 0, 0, 0.07);
+  --grid-stroke: rgba(0, 0, 0, 0.08);
+  --bar-track: rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.06);
+  --title-gradient-from: #0f172a;
+  --title-gradient-to: #6366f1;
 }
 
 * {
@@ -62,7 +110,7 @@ body {
 .sidebar-logo {
   font-size: 24px;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-heading);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -92,8 +140,8 @@ body {
 }
 
 .nav-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #fff;
+  background: var(--bg-subtle-hover);
+  color: var(--text-heading);
   transform: translateX(4px);
 }
 
@@ -124,7 +172,7 @@ body {
 .page-title {
   font-size: 32px;
   font-weight: 600;
-  background: linear-gradient(90deg, #fff, #a5b4fc);
+  background: linear-gradient(90deg, var(--title-gradient-from), var(--title-gradient-to));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -136,7 +184,7 @@ body {
   border: 1px solid var(--card-border);
   border-radius: var(--radius);
   padding: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-card);
   transition: var(--transition);
   display: flex;
   flex-direction: column;
@@ -145,7 +193,7 @@ body {
 }
 
 .glass-card:hover {
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: var(--bg-overlay);
   transform: translateY(-2px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
 }
@@ -212,7 +260,7 @@ body {
   width: 160px;
   height: 160px;
   border-radius: 50%;
-  border: 12px solid rgba(255,255,255,0.05);
+  border: 12px solid var(--grid-stroke);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -234,7 +282,7 @@ body {
 .health-number {
   font-size: 48px;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-heading);
   line-height: 1;
 }
 
@@ -277,7 +325,7 @@ body {
 }
 
 .chat-message.user {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-overlay-light);
   align-self: flex-end;
   border-bottom-right-radius: 4px;
 }
@@ -290,11 +338,11 @@ body {
 
 .chat-input {
   flex: 1;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--bg-inset);
   border: 1px solid var(--card-border);
   border-radius: 20px;
   padding: 12px 20px;
-  color: #fff;
+  color: var(--text-heading);
   font-family: inherit;
   font-size: 14px;
   outline: none;
@@ -332,7 +380,7 @@ body {
   align-items: flex-start;
   gap: 16px;
   padding: 16px;
-  background: rgba(0,0,0,0.2);
+  background: var(--bg-inset);
   border-radius: 12px;
   margin-bottom: 12px;
   border-left: 4px solid transparent;
@@ -363,7 +411,7 @@ body {
 
 /* Loading Skeleton */
 .skeleton {
-  background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+  background: linear-gradient(90deg, var(--bg-subtle) 25%, var(--bg-overlay) 50%, var(--bg-subtle) 75%);
   background-size: 200% 100%;
   animation: loading 1.5s infinite;
   border-radius: 8px;
@@ -378,14 +426,14 @@ body {
 .skeleton-text {
   height: 16px;
   border-radius: 4px;
-  background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+  background: linear-gradient(90deg, var(--bg-subtle) 25%, var(--bg-overlay) 50%, var(--bg-subtle) 75%);
   background-size: 200% 100%;
   animation: loading 1.5s infinite;
 }
 
 .skeleton-circle {
   border-radius: 50%;
-  background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+  background: linear-gradient(90deg, var(--bg-subtle) 25%, var(--bg-overlay) 50%, var(--bg-subtle) 75%);
   background-size: 200% 100%;
   animation: loading 1.5s infinite;
 }
@@ -400,12 +448,21 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.1);
+  background: var(--bar-track);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255,255,255,0.2);
+  background: var(--bg-overlay);
+}
+
+/* Light-mode scrollbar overrides */
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
 }
 
 /* ── Metric icon badge ── */
@@ -431,7 +488,7 @@ body {
 
 /* List item card (recommendations, segments, fraud rows) */
 .list-card {
-  background: rgba(255,255,255,0.03);
+  background: var(--bg-subtle);
   border: 1px solid var(--card-border);
   border-radius: 12px;
   padding: 14px 16px;

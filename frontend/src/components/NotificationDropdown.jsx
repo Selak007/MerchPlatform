@@ -126,7 +126,7 @@ export default function NotificationDropdown({ merchantId, apiBaseUrl = 'http://
   };
 
   const bellStyle = {
-    background: 'rgba(255,255,255,0.05)',
+    background: 'var(--bg-subtle-hover)',
     border: '1px solid var(--card-border)',
     width: '40px',
     height: '40px',
@@ -163,7 +163,7 @@ export default function NotificationDropdown({ merchantId, apiBaseUrl = 'http://
     right: '0',
     width: '380px',
     maxHeight: '480px',
-    background: 'rgba(26, 28, 43, 0.96)',
+    background: 'var(--card-bg)',
     backdropFilter: 'blur(24px)',
     border: '1px solid var(--card-border)',
     borderRadius: '16px',
@@ -182,7 +182,7 @@ export default function NotificationDropdown({ merchantId, apiBaseUrl = 'http://
         onClick={() => setIsOpen(!isOpen)}
         data-testid="notification-bell"
       >
-        <Bell size={18} color="#fff" />
+        <Bell size={18} color="var(--text-heading)" />
         {unreadCount > 0 && (
           <span style={badgeStyle} data-testid="unread-badge">
             {unreadCount > 9 ? '9+' : unreadCount}
@@ -198,7 +198,7 @@ export default function NotificationDropdown({ merchantId, apiBaseUrl = 'http://
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             padding: '16px 20px', borderBottom: '1px solid var(--card-border)',
           }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#fff' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-heading)' }}>
               Notifications {unreadCount > 0 && <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>({unreadCount} new)</span>}
             </h3>
             <div style={{ display: 'flex', gap: '8px' }}>
@@ -265,7 +265,7 @@ export default function NotificationDropdown({ merchantId, apiBaseUrl = 'http://
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <h4 style={{ fontSize: '13px', fontWeight: '600', color: '#fff' }}>{notif.title}</h4>
+                        <h4 style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-heading)' }}>{notif.title}</h4>
                         {!notif.read && (
                           <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--primary)', flexShrink: 0 }}></div>
                         )}

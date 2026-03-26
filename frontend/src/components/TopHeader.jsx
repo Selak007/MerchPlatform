@@ -36,7 +36,7 @@ export default function TopHeader({ title, merchants, selectedMerchant, setSelec
           aria-label="Select merchant"
           style={{
             background: 'var(--card-bg)', border: '1px solid var(--primary)', borderRadius: '12px',
-            color: '#fff', padding: '8px 16px', fontSize: '14px', outline: 'none', cursor: 'pointer',
+            color: 'var(--text-heading)', padding: '8px 16px', fontSize: '14px', outline: 'none', cursor: 'pointer',
             backdropFilter: 'blur(10px)'
           }}
         >
@@ -49,7 +49,7 @@ export default function TopHeader({ title, merchants, selectedMerchant, setSelec
         </select>
 
         <div style={{ 
-          display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.3)', 
+          display: 'flex', alignItems: 'center', background: 'var(--bg-inset-light)', 
           borderRadius: '20px', padding: '8px 16px', border: '1px solid var(--card-border)' 
         }}>
           <Search size={16} color="var(--text-muted)" style={{ marginRight: '8px' }} />
@@ -61,7 +61,7 @@ export default function TopHeader({ title, merchants, selectedMerchant, setSelec
             onKeyDown={handleSearchKeyDown}
             aria-label="Search insights"
             style={{ 
-              background: 'transparent', border: 'none', color: '#fff', 
+              background: 'transparent', border: 'none', color: 'var(--text-heading)', 
               outline: 'none', width: '200px', fontSize: '14px' 
             }} 
           />
@@ -71,7 +71,7 @@ export default function TopHeader({ title, merchants, selectedMerchant, setSelec
 
         <div style={{ 
           display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer',
-          padding: '6px 12px', borderRadius: '20px', background: 'rgba(255,255,255,0.05)',
+          padding: '6px 12px', borderRadius: '20px', background: 'var(--bg-subtle-hover)',
           border: '1px solid var(--card-border)'
         }}>
           <div style={{ 
@@ -81,7 +81,7 @@ export default function TopHeader({ title, merchants, selectedMerchant, setSelec
           }}>
             <User size={16} color="#fff" />
           </div>
-          <span style={{ fontSize: '14px', fontWeight: '500', color: '#fff' }}>Merchant</span>
+          <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-heading)' }}>Merchant</span>
         </div>
       </div>
     </header>
